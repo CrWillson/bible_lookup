@@ -14,9 +14,8 @@ fn count_lines(file_path: &str) -> io::Result<usize> {
     Ok(line_count)
 }
 
-// Function to capitalize the first letter in every word
-fn uppercase_words(data: &str) -> String {
-    // Uppercase first letter in string, and letters after spaces.
+// Function to capitalize the first letter of a string
+fn uppercase_first(data: &str) -> String {
     let mut result = String::new();
     let mut first = true;
     for value in data.chars() {
@@ -25,9 +24,6 @@ fn uppercase_words(data: &str) -> String {
             first = false;
         } else {
             result.push(value.to_ascii_lowercase());
-            if value == ' ' {
-                first = true;
-            }
         }
     }
     result
@@ -73,15 +69,16 @@ fn wrap_text(text: &str) -> String {
     lines.join("\n")
 }
 
-fn search_bible(book: &str, chapter: &str, verse: &str, file: &str) -> io::Result<()> {
-    let line_count = count_lines(file).unwrap() - 1;
+// Search the Bible txt for a given book, chapter, and verse
+fn search_bible(book: &str, chapter: &str, verse: &str, input_file: &str) -> io::Result<()> {
+    let line_count = count_lines(input_file).unwrap() - 1;
 
     let book_name = &(book.to_string())[12..];
 
     let mut found_book = false;
     let mut found_chapter = false;
 
-    let file = File::open(file)?;
+    let file = File::open(input_file).expect("Failed to open Bible file");
     let reader = BufReader::new(file);
 
     // Begin scanning through the whole Bible
@@ -89,7 +86,7 @@ fn search_bible(book: &str, chapter: &str, verse: &str, file: &str) -> io::Resul
         let line = line?;
 
         // Found the book
-        if line.contains(&book) {
+        if line.ends_with(&book) {
             found_book = true;
             continue;
         }
@@ -109,7 +106,7 @@ fn search_bible(book: &str, chapter: &str, verse: &str, file: &str) -> io::Resul
 
             out_string = wrap_text(&out_string);
 
-            write_to_file(&out_string, "src/verses.txt")?;
+            write_to_file(&out_string, "verses.txt")?;
             println!("{}", out_string);
             break;
         }
@@ -118,7 +115,7 @@ fn search_bible(book: &str, chapter: &str, verse: &str, file: &str) -> io::Resul
         if (((line.contains("THE BOOK OF")) || (line.contains("CHAPTER")) || (line.contains("PSALM")) 
             || (line_number == line_count)) && found_book && found_chapter) || verse == "0" {
             
-            let chapter_num = uppercase_words(chapter);
+            let chapter_num = uppercase_first(chapter);
 
             println!("{} of {} does not have a verse {}", chapter_num, book_name, verse);
             break;
@@ -142,24 +139,20 @@ fn search_bible(book: &str, chapter: &str, verse: &str, file: &str) -> io::Resul
 
 fn main() -> std::io::Result<()> {
     // Initialize variables
-    let bible_text_path = "./src/Bible.txt";
-    let bible_abbr_path = "./src/Bible_Abbreviations.csv";
+    let bible_text_path = "Bible.txt";
+    let bible_abbr_path = "Bible_Abbreviations.csv";
 
-    let abbr_file = File::open(bible_abbr_path);
+    let abbr_file = File::open(bible_abbr_path).expect("Failed to open Abbr file");
     let mut bible_abbr: HashMap<String, String> = HashMap::new();
 
-    // Create reader on CSV file
-    let mut reader = ReaderBuilder::new().has_headers(false).from_reader(abbr_file?);
+    // Read the csv file
+    let reader = BufReader::new(abbr_file);
+    
+    for line in reader.lines() {
+        let line = line.unwrap();
 
-    // Store CSV into map
-    for row in reader.records() {
-        let record = row?;
-
-        if let Some(column1) = record.get(0) {
-            if let Some(column2) = record.get(1) {
-                bible_abbr.insert(column1.to_string().to_uppercase(), column2.to_string().to_uppercase());
-            }
-        }
+        let mut values = line.split(',');
+        bible_abbr.insert(values.next().unwrap().to_uppercase(), values.next().unwrap().to_uppercase());
     }
 
     // Main searching loop
