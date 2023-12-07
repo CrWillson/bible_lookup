@@ -2,7 +2,16 @@ use std::collections::HashMap;
 use std::io;
 use std::fs::{File, OpenOptions};
 use std::io::*;
-use csv::ReaderBuilder;
+
+/**
+ * PLS L6: Bible Search Program
+ * Author: Caleb Willson
+ * Date: 12/8/23
+ * 
+ * Allows the user to search for any verse in the Bible and save
+ * it to an output text file
+ * 
+ */
 
 // Function to return the number of lines in a text file
 fn count_lines(file_path: &str) -> io::Result<usize> {
@@ -137,6 +146,7 @@ fn search_bible(book: &str, chapter: &str, verse: &str, input_file: &str) -> io:
     Ok(())
 }
 
+// Main function
 fn main() -> std::io::Result<()> {
     // Initialize variables
     let bible_text_path = "Bible.txt";
