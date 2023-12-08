@@ -11,6 +11,12 @@ use std::io::*;
  * Allows the user to search for any verse in the Bible and save
  * it to an output text file
  * 
+ * Helpful links used:
+ * - Rust documentation: https://www.rust-lang.org/learn
+ * - Tutorials point: https://www.tutorialspoint.com/rust/index.htm
+ * - Dot Net Perls: https://www.dotnetperls.com
+ * - Many random Reddit and StackOverflow threads
+ * 
  */
 
 // Function to return the number of lines in a text file
